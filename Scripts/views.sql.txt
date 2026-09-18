@@ -1,0 +1,126 @@
+USE property_management;
+
+
+-- ============================================================
+-- PROPERTY MANAGEMENT & REAL ESTATE ANALYTICS
+-- VIEWS
+-- ============================================================
+
+
+-- ============================================================
+-- VIEW 1: Active Lease Details
+-- Shows active tenants, their units, properties and rent.
+-- ============================================================
+
+CREATE OR REPLACE VIEW active_lease_details AS
+SELECT
+    l.lease_id,
+    t.tenant_id,
+    CONCAT(t.first_name, ' ', t.last_name) AS tenant_name,
+    p.property_name,
+    u.unit_number,
+    u.unit_type,
+    l.start_date,
+    l.end_date,
+    l.monthly_rent
+FROM leases l
+INNER JOIN tenants t
+    ON l.tenant_id = t.tenant_id
+INNER JOIN units u
+    ON l.unit_id = u.unit_id
+INNER JOIN properties p
+    ON u.property_id = p.property_id
+WHERE l.status = 'Active';
+
+
+-- ============================================================
+-- VIEW 2: Property Occupancy Summary
+-- Shows total units, occupied units, vacant units
+-- and occupancy rate for each property.
+-- ============================================================
+
+CREATE OR REPLACE VIEW property_occupancy_summary AS
+SELECT
+    p.property_id,
+    p.property_name,
+    COUNT(u.unit_id) AS total_units,
+    SUM(
+        CASE
+            WHEN u.status = 'Occupied' THEN 1
+            ELSE 0
+        END
+    ) AS occupied_units,
+    SUM(
+        CASE
+            WHEN u.status = 'Vacant' THEN 1
+            ELSE 0
+        END
+    ) AS vacant_units,
+    (
+        SUM(
+            CASE
+                WHEN u.status = 'Occupied' THEN 1
+                ELSE 0
+            END
+        ) * 100.0 / COUNT(u.unit_id)
+    ) AS occupancy_rate
+FROM properties p
+INNER JOIN units u
+    ON p.property_id = u.property_id
+GROUP BY p.property_id, p.property_name;
+
+
+-- ============================================================
+-- VIEW 3: Property Revenue Summary
+-- Shows total paid rental revenue for each property.
+-- ============================================================
+
+CREATE OR REPLACE VIEW property_revenue_summary AS
+SELECT
+    p.property_id,
+    p.property_name,
+    COALESCE(SUM(pay.amount), 0) AS total_revenue
+FROM properties p
+LEFT JOIN units u
+    ON p.property_id = u.property_id
+LEFT JOIN leases l
+    ON u.unit_id = l.unit_id
+LEFT JOIN payments pay
+    ON l.lease_id = pay.lease_id
+    AND pay.payment_status = 'Paid'
+GROUP BY p.property_id, p.property_name;
+
+
+-- ============================================================
+-- VIEW 4: Property Expense Summary
+-- Shows total paid expenses for each property.
+-- ============================================================
+
+CREATE OR REPLACE VIEW property_expense_summary AS
+SELECT
+    p.property_id,
+    p.property_name,
+    COALESCE(SUM(e.amount), 0) AS total_expenses
+FROM properties p
+LEFT JOIN expenses e
+    ON p.property_id = e.property_id
+    AND e.payment_status = 'Paid'
+GROUP BY p.property_id, p.property_name;
+
+
+-- ============================================================
+-- VIEW 5: Property Financial Summary
+-- Combines rental revenue and paid expenses
+-- to calculate net amount.
+-- ============================================================
+
+CREATE OR REPLACE VIEW property_financial_summary AS
+SELECT
+    r.property_id,
+    r.property_name,
+    r.total_revenue,
+    e.total_expenses,
+    r.total_revenue - e.total_expenses AS net_amount
+FROM property_revenue_summary r
+INNER JOIN property_expense_summary e
+    ON r.property_id = e.property_id;

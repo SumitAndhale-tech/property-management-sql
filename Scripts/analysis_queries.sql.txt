@@ -1,0 +1,582 @@
+USE property_management;
+
+
+-- ============================================================
+-- PROPERTY MANAGEMENT & REAL ESTATE ANALYTICS
+-- ANALYSIS QUERIES
+-- Total Queries: 30
+-- ============================================================
+
+
+-- ============================================================
+-- Q1. Find the number of units in each property.
+-- Concept: JOIN + GROUP BY + COUNT
+-- ============================================================
+
+SELECT
+    p.property_name,
+    COUNT(u.unit_id) AS total_units
+FROM properties p
+INNER JOIN units u
+    ON p.property_id = u.property_id
+GROUP BY p.property_id, p.property_name;
+
+
+-- ============================================================
+-- Q2. Find all vacant units.
+-- Concept: WHERE
+-- ============================================================
+
+SELECT
+    unit_id,
+    property_id,
+    unit_number,
+    unit_type,
+    monthly_rent
+FROM units
+WHERE status = 'Vacant';
+
+
+-- ============================================================
+-- Q3. Find units with monthly rent greater than ₹25,000.
+-- Concept: WHERE + comparison operator
+-- ============================================================
+
+SELECT
+    unit_id,
+    unit_number,
+    unit_type,
+    monthly_rent
+FROM units
+WHERE monthly_rent > 25000;
+
+
+-- ============================================================
+-- Q4. Find the top 5 most expensive units.
+-- Concept: ORDER BY + LIMIT
+-- ============================================================
+
+SELECT
+    unit_id,
+    unit_number,
+    unit_type,
+    monthly_rent
+FROM units
+ORDER BY monthly_rent DESC
+LIMIT 5;
+
+
+-- ============================================================
+-- Q5. Find all active tenants.
+-- Concept: WHERE
+-- ============================================================
+
+SELECT
+    tenant_id,
+    first_name,
+    last_name,
+    email
+FROM tenants
+WHERE status = 'Active';
+
+
+-- ============================================================
+-- Q6. Find active tenants along with their unit numbers.
+-- Concept: JOIN + WHERE
+-- ============================================================
+
+SELECT
+    t.first_name,
+    t.last_name,
+    u.unit_number
+FROM tenants t
+INNER JOIN leases l
+    ON t.tenant_id = l.tenant_id
+INNER JOIN units u
+    ON l.unit_id = u.unit_id
+WHERE l.status = 'Active';
+
+
+-- ============================================================
+-- Q7. Find the number of occupied units in each property.
+-- Concept: JOIN + WHERE + GROUP BY + COUNT
+-- ============================================================
+
+SELECT
+    p.property_name,
+    COUNT(u.unit_id) AS occupied_units
+FROM properties p
+INNER JOIN units u
+    ON p.property_id = u.property_id
+WHERE u.status = 'Occupied'
+GROUP BY p.property_id, p.property_name;
+
+
+-- ============================================================
+-- Q8. Find the average monthly rent for each property.
+-- Concept: JOIN + GROUP BY + AVG
+-- ============================================================
+
+SELECT
+    p.property_name,
+    AVG(u.monthly_rent) AS average_rent
+FROM properties p
+INNER JOIN units u
+    ON p.property_id = u.property_id
+GROUP BY p.property_id, p.property_name;
+
+
+-- ============================================================
+-- Q9. Find the total monthly rent of all units in each property.
+-- Concept: JOIN + GROUP BY + SUM
+-- ============================================================
+
+SELECT
+    p.property_name,
+    SUM(u.monthly_rent) AS total_monthly_rent
+FROM properties p
+INNER JOIN units u
+    ON p.property_id = u.property_id
+GROUP BY p.property_id, p.property_name;
+
+
+-- ============================================================
+-- Q10. Find the number of vacant units in each property.
+-- Concept: JOIN + WHERE + GROUP BY + COUNT
+-- ============================================================
+
+SELECT
+    p.property_name,
+    COUNT(u.unit_id) AS vacant_units
+FROM properties p
+INNER JOIN units u
+    ON p.property_id = u.property_id
+WHERE u.status = 'Vacant'
+GROUP BY p.property_id, p.property_name;
+
+
+-- ============================================================
+-- Q11. Find properties where the average unit rent is greater
+--      than ₹25,000.
+-- Concept: GROUP BY + HAVING + AVG
+-- ============================================================
+
+SELECT
+    p.property_name,
+    AVG(u.monthly_rent) AS average_rent
+FROM properties p
+INNER JOIN units u
+    ON p.property_id = u.property_id
+GROUP BY p.property_id, p.property_name
+HAVING AVG(u.monthly_rent) > 25000;
+
+
+-- ============================================================
+-- Q12. Find properties having more than 4 units.
+-- Concept: GROUP BY + HAVING + COUNT
+-- ============================================================
+
+SELECT
+    p.property_name,
+    COUNT(u.unit_id) AS total_units
+FROM properties p
+INNER JOIN units u
+    ON p.property_id = u.property_id
+GROUP BY p.property_id, p.property_name
+HAVING COUNT(u.unit_id) > 4;
+
+
+-- ============================================================
+-- Q13. Find the total number of leases for each tenant.
+-- Concept: JOIN + GROUP BY + COUNT
+-- ============================================================
+
+SELECT
+    t.first_name,
+    t.last_name,
+    COUNT(l.lease_id) AS total_leases
+FROM tenants t
+INNER JOIN leases l
+    ON t.tenant_id = l.tenant_id
+GROUP BY t.tenant_id, t.first_name, t.last_name;
+
+
+-- ============================================================
+-- Q14. Find the total paid rental revenue for each property.
+-- Concept: Multiple JOINs + WHERE + GROUP BY + SUM
+-- ============================================================
+
+SELECT
+    p.property_name,
+    SUM(pay.amount) AS total_revenue
+FROM properties p
+INNER JOIN units u
+    ON p.property_id = u.property_id
+INNER JOIN leases l
+    ON u.unit_id = l.unit_id
+INNER JOIN payments pay
+    ON l.lease_id = pay.lease_id
+WHERE pay.payment_status = 'Paid'
+GROUP BY p.property_id, p.property_name;
+
+
+-- ============================================================
+-- Q15. Find the total expenses for each property.
+-- Concept: JOIN + GROUP BY + SUM
+-- ============================================================
+
+SELECT
+    p.property_name,
+    SUM(e.amount) AS total_expenses
+FROM properties p
+INNER JOIN expenses e
+    ON p.property_id = e.property_id
+GROUP BY p.property_id, p.property_name;
+
+
+-- ============================================================
+-- Q16. Find properties having pending expenses.
+-- Concept: WHERE + JOIN
+-- ============================================================
+
+SELECT
+    p.property_name,
+    e.category,
+    e.amount,
+    e.payment_status
+FROM properties p
+INNER JOIN expenses e
+    ON p.property_id = e.property_id
+WHERE e.payment_status = 'Pending';
+
+
+-- ============================================================
+-- Q17. Find the number of maintenance requests handled by
+--      each employee.
+-- Concept: JOIN + GROUP BY + COUNT
+-- ============================================================
+
+SELECT
+    e.first_name,
+    e.last_name,
+    COUNT(m.request_id) AS total_requests
+FROM employees e
+INNER JOIN maintenance_requests m
+    ON e.employee_id = m.employee_id
+GROUP BY e.employee_id, e.first_name, e.last_name;
+
+
+-- ============================================================
+-- Q18. Count maintenance requests by priority.
+-- Concept: GROUP BY + COUNT
+-- ============================================================
+
+SELECT
+    priority,
+    COUNT(request_id) AS total_requests
+FROM maintenance_requests
+GROUP BY priority;
+
+
+-- ============================================================
+-- Q19. Find the number of maintenance requests for each property.
+-- Concept: Multiple JOINs + GROUP BY + COUNT
+-- ============================================================
+
+SELECT
+    p.property_name,
+    COUNT(m.request_id) AS total_requests
+FROM properties p
+INNER JOIN units u
+    ON p.property_id = u.property_id
+INNER JOIN maintenance_requests m
+    ON u.unit_id = m.unit_id
+GROUP BY p.property_id, p.property_name;
+
+
+-- ============================================================
+-- Q20. Find tenants with an active lease and their monthly rent.
+-- Concept: Multiple JOINs + WHERE
+-- ============================================================
+
+SELECT
+    t.first_name,
+    t.last_name,
+    u.unit_number,
+    l.monthly_rent
+FROM tenants t
+INNER JOIN leases l
+    ON t.tenant_id = l.tenant_id
+INNER JOIN units u
+    ON l.unit_id = u.unit_id
+WHERE l.status = 'Active';
+
+
+-- ============================================================
+-- Q21. Find tenants who have made at least one late payment.
+-- Concept: JOIN + WHERE
+-- ============================================================
+
+SELECT DISTINCT
+    t.first_name,
+    t.last_name
+FROM tenants t
+INNER JOIN leases l
+    ON t.tenant_id = l.tenant_id
+INNER JOIN payments pay
+    ON l.lease_id = pay.lease_id
+WHERE pay.payment_status = 'Late';
+
+
+-- ============================================================
+-- Q22. Find properties having more than 3 occupied units.
+-- Concept: JOIN + WHERE + GROUP BY + HAVING
+-- ============================================================
+
+SELECT
+    p.property_name,
+    COUNT(u.unit_id) AS occupied_units
+FROM properties p
+INNER JOIN units u
+    ON p.property_id = u.property_id
+WHERE u.status = 'Occupied'
+GROUP BY p.property_id, p.property_name
+HAVING COUNT(u.unit_id) > 3;
+
+
+-- ============================================================
+-- Q23. Find the tenant(s) paying the highest monthly rent among
+--      active leases.
+-- Concept: JOIN + Subquery + MAX
+-- ============================================================
+
+SELECT
+    t.first_name,
+    t.last_name,
+    l.monthly_rent
+FROM tenants t
+INNER JOIN leases l
+    ON t.tenant_id = l.tenant_id
+WHERE l.status = 'Active'
+  AND l.monthly_rent = (
+      SELECT MAX(monthly_rent)
+      FROM leases
+      WHERE status = 'Active'
+  );
+
+
+-- ============================================================
+-- Q24. Find tenants whose active lease rent is greater than
+--      the average active lease rent.
+-- Concept: JOIN + Subquery + AVG
+-- ============================================================
+
+SELECT
+    t.first_name,
+    t.last_name,
+    l.monthly_rent
+FROM tenants t
+INNER JOIN leases l
+    ON t.tenant_id = l.tenant_id
+WHERE l.status = 'Active'
+  AND l.monthly_rent > (
+      SELECT AVG(monthly_rent)
+      FROM leases
+      WHERE status = 'Active'
+  );
+
+
+-- ============================================================
+-- Q25. Find the property with the highest total paid rental
+--      revenue.
+-- Concept: CTE + GROUP BY + SUM + Subquery
+-- ============================================================
+
+WITH property_revenue AS (
+    SELECT
+        p.property_id,
+        p.property_name,
+        SUM(pay.amount) AS total_revenue
+    FROM properties p
+    INNER JOIN units u
+        ON p.property_id = u.property_id
+    INNER JOIN leases l
+        ON u.unit_id = l.unit_id
+    INNER JOIN payments pay
+        ON l.lease_id = pay.lease_id
+    WHERE pay.payment_status = 'Paid'
+    GROUP BY p.property_id, p.property_name
+)
+SELECT *
+FROM property_revenue
+WHERE total_revenue = (
+    SELECT MAX(total_revenue)
+    FROM property_revenue
+);
+
+
+-- ============================================================
+-- Q26. Find the employee(s) handling the highest number of
+--      maintenance requests.
+-- Concept: CTE + GROUP BY + COUNT + Subquery
+-- ============================================================
+
+WITH employee_requests AS (
+    SELECT
+        e.employee_id,
+        e.first_name,
+        e.last_name,
+        COUNT(m.request_id) AS total_requests
+    FROM employees e
+    INNER JOIN maintenance_requests m
+        ON e.employee_id = m.employee_id
+    GROUP BY e.employee_id, e.first_name, e.last_name
+)
+SELECT *
+FROM employee_requests
+WHERE total_requests = (
+    SELECT MAX(total_requests)
+    FROM employee_requests
+);
+
+
+-- ============================================================
+-- Q27. Find the property/properties with the highest occupancy
+--      rate.
+-- Concept: CTE + CASE + Calculation + Subquery
+-- ============================================================
+
+WITH property_occupancy AS (
+    SELECT
+        p.property_id,
+        p.property_name,
+        COUNT(u.unit_id) AS total_units,
+        SUM(
+            CASE
+                WHEN u.status = 'Occupied' THEN 1
+                ELSE 0
+            END
+        ) AS occupied_units
+    FROM properties p
+    INNER JOIN units u
+        ON p.property_id = u.property_id
+    GROUP BY p.property_id, p.property_name
+)
+SELECT
+    property_name,
+    total_units,
+    occupied_units,
+    (occupied_units * 100.0 / total_units) AS occupancy_rate
+FROM property_occupancy
+WHERE (occupied_units * 100.0 / total_units) = (
+    SELECT MAX(occupied_units * 100.0 / total_units)
+    FROM property_occupancy
+);
+
+
+-- ============================================================
+-- Q28. Find the top 3 properties by total paid rental revenue.
+-- Concept: CTE + Multiple JOINs + GROUP BY + ORDER BY + LIMIT
+-- ============================================================
+
+WITH property_revenue AS (
+    SELECT
+        p.property_id,
+        p.property_name,
+        SUM(pay.amount) AS total_revenue
+    FROM properties p
+    INNER JOIN units u
+        ON p.property_id = u.property_id
+    INNER JOIN leases l
+        ON u.unit_id = l.unit_id
+    INNER JOIN payments pay
+        ON l.lease_id = pay.lease_id
+    WHERE pay.payment_status = 'Paid'
+    GROUP BY p.property_id, p.property_name
+)
+SELECT *
+FROM property_revenue
+ORDER BY total_revenue DESC
+LIMIT 3;
+
+
+-- ============================================================
+-- Q29. Find each property's paid rental revenue, paid expenses,
+--      and net amount.
+-- Concept: Multiple CTEs + LEFT JOIN + COALESCE
+-- ============================================================
+
+WITH property_revenue AS (
+    SELECT
+        p.property_id,
+        p.property_name,
+        SUM(pay.amount) AS total_revenue
+    FROM properties p
+    INNER JOIN units u
+        ON p.property_id = u.property_id
+    INNER JOIN leases l
+        ON u.unit_id = l.unit_id
+    INNER JOIN payments pay
+        ON l.lease_id = pay.lease_id
+    WHERE pay.payment_status = 'Paid'
+    GROUP BY p.property_id, p.property_name
+),
+property_expenses AS (
+    SELECT
+        p.property_id,
+        SUM(e.amount) AS total_expenses
+    FROM properties p
+    INNER JOIN expenses e
+        ON p.property_id = e.property_id
+    WHERE e.payment_status = 'Paid'
+    GROUP BY p.property_id
+)
+SELECT
+    r.property_name,
+    r.total_revenue,
+    COALESCE(e.total_expenses, 0) AS total_expenses,
+    r.total_revenue - COALESCE(e.total_expenses, 0) AS net_amount
+FROM property_revenue r
+LEFT JOIN property_expenses e
+    ON r.property_id = e.property_id;
+
+
+-- ============================================================
+-- Q30. Find properties having occupancy above 80% and total
+--      paid rental revenue above ₹100,000.
+-- Concept: CTE + CASE + JOINs + GROUP BY + HAVING/WHERE
+-- ============================================================
+
+WITH property_analysis AS (
+    SELECT
+        p.property_id,
+        p.property_name,
+        COUNT(DISTINCT u.unit_id) AS total_units,
+        COUNT(
+            DISTINCT CASE
+                WHEN u.status = 'Occupied' THEN u.unit_id
+            END
+        ) AS occupied_units,
+        SUM(
+            CASE
+                WHEN pay.payment_status = 'Paid'
+                THEN pay.amount
+                ELSE 0
+            END
+        ) AS total_revenue
+    FROM properties p
+    INNER JOIN units u
+        ON p.property_id = u.property_id
+    LEFT JOIN leases l
+        ON u.unit_id = l.unit_id
+    LEFT JOIN payments pay
+        ON l.lease_id = pay.lease_id
+    GROUP BY p.property_id, p.property_name
+)
+SELECT
+    property_name,
+    (occupied_units * 100.0 / total_units) AS occupancy_rate,
+    total_revenue
+FROM property_analysis
+WHERE (occupied_units * 100.0 / total_units) > 80
+  AND total_revenue > 100000;

@@ -1,0 +1,43 @@
+USE property_management;
+
+
+-- ============================================================
+-- PROPERTY MANAGEMENT & REAL ESTATE ANALYTICS
+-- INDEXES
+-- ============================================================
+
+
+-- ============================================================
+-- INDEX 1: Payments by Lease
+-- Useful when finding payments belonging to a specific lease.
+-- ============================================================
+
+CREATE INDEX idx_payments_lease_id
+ON payments(lease_id);
+
+
+-- ============================================================
+-- INDEX 2: Leases by Tenant
+-- Useful when finding all leases of a particular tenant.
+-- ============================================================
+
+CREATE INDEX idx_leases_tenant_id
+ON leases(tenant_id);
+
+
+-- ============================================================
+-- INDEX 3: Units by Property
+-- Useful when finding units belonging to a property.
+-- ============================================================
+
+CREATE INDEX idx_units_property_id
+ON units(property_id);
+
+
+-- ============================================================
+-- INDEX 4: Maintenance Requests by Employee
+-- Useful when finding requests assigned to an employee.
+-- ============================================================
+
+CREATE INDEX idx_maintenance_employee_id
+ON maintenance_requests(employee_id);

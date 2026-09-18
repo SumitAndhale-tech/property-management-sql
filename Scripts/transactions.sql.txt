@@ -1,0 +1,76 @@
+USE property_management;
+
+
+-- ============================================================
+-- PROPERTY MANAGEMENT & REAL ESTATE ANALYTICS
+-- TRANSACTIONS
+-- ============================================================
+
+
+-- ============================================================
+-- TRANSACTION 1: Successful Payment
+-- Demonstrates COMMIT
+-- ============================================================
+
+START TRANSACTION;
+
+INSERT INTO payments
+(payment_id, lease_id, payment_date, amount, payment_method, payment_status)
+VALUES
+(151, 2, '2026-09-15', 15500, 'UPI', 'Paid');
+
+COMMIT;
+
+
+-- ============================================================
+-- TRANSACTION 2: Payment That Should Be Cancelled
+-- Demonstrates ROLLBACK
+-- ============================================================
+
+START TRANSACTION;
+
+INSERT INTO payments
+(payment_id, lease_id, payment_date, amount, payment_method, payment_status)
+VALUES
+(152, 4, '2026-09-15', 22500, 'Bank Transfer', 'Paid');
+
+ROLLBACK;
+
+
+-- ============================================================
+-- TRANSACTION 3: Multiple Operations with SAVEPOINT
+-- Demonstrates partial rollback
+-- ============================================================
+
+START TRANSACTION;
+
+INSERT INTO payments
+(payment_id, lease_id, payment_date, amount, payment_method, payment_status)
+VALUES
+(153, 7, '2026-09-15', 16500, 'UPI', 'Paid');
+
+SAVEPOINT payment_savepoint;
+
+INSERT INTO payments
+(payment_id, lease_id, payment_date, amount, payment_method, payment_status)
+VALUES
+(154, 9, '2026-09-15', 31000, 'Cash', 'Paid');
+
+ROLLBACK TO SAVEPOINT payment_savepoint;
+
+COMMIT;
+
+
+-- ============================================================
+-- TRANSACTION 4: Update Payment Status
+-- Demonstrates COMMIT
+-- ============================================================
+
+START TRANSACTION;
+
+UPDATE payments
+SET payment_status = 'Paid'
+WHERE payment_id = 115
+  AND payment_status = 'Pending';
+
+COMMIT;
